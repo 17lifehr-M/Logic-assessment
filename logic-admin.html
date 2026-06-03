@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>邏輯能力測驗 · 管理後台</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root{
+  --green:#2d5a3d;--green-l:#e8f5ed;--paper:#f8f6f1;--paper2:#f2f0eb;--paper3:#e8e5de;
+  --ink:#3d3a34;--ink2:#7a7570;--ink3:#b0acaa;--radius:10px;--radius-lg:14px;
+  --accent:#2d5a3d;--accent-light:#e8f5ed;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans TC','PingFang TC','Microsoft JhengHei',sans-serif;background:var(--paper);color:var(--ink);display:flex;min-height:100vh}
+/* sidebar */
+.sidebar{width:220px;background:#fff;border-right:1px solid var(--paper3);display:flex;flex-direction:column;position:fixed;top:0;bottom:0;left:0;padding:20px 0}
+.sidebar-logo{padding:0 20px 20px;border-bottom:1px solid var(--paper3)}
+.sidebar-logo-title{font-size:12px;color:var(--ink2);margin-top:4px}
+.sidebar-nav{flex:1;padding:12px 0}
+.nav-item{display:flex;align-items:center;gap:10px;padding:11px 20px;font-size:14px;color:var(--ink2);cursor:pointer;transition:all .15s;border-left:3px solid transparent}
+.nav-item:hover{background:var(--paper);color:var(--ink)}
+.nav-item.active{background:var(--green-l);color:var(--green);border-left-color:var(--green);font-weight:600}
+.sidebar-bottom{padding:16px 20px;border-top:1px solid var(--paper3)}
+.admin-chip{display:flex;align-items:center;gap:10px;font-size:13px}
+.admin-avatar{width:32px;height:32px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px}
+.btn-logout{margin-top:8px;width:100%;padding:8px;background:var(--paper2);border:1px solid var(--paper3);border-radius:var(--radius);font-size:13px;cursor:pointer;color:var(--ink)}
+
+/* main */
+.main{margin-left:220px;flex:1;padding:28px 32px;max-width:1140px}
+.page-title{font-size:22px;font-weight:700;margin-bottom:4px}
+.page-sub{font-size:13px;color:var(--ink2);margin-bottom:24px}
+
+/* stat cards */
+.stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:24px}
+.stat-card{background:#fff;border:1px solid var(--paper3);border-radius:var(--radius-lg);padding:18px 20px}
+.sc-val{font-size:28px;font-weight:500;margin-bottom:4px}
+.sc-lbl{font-size:13px;color:var(--ink2)}
+
+/* table */
+.table-wrap{background:#fff;border:1px solid var(--paper3);border-radius:var(--radius-lg);overflow:hidden}
+.table-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--paper3)}
+.table-head h3{font-size:15px;font-weight:600}
+table{width:100%;border-collapse:collapse}
+thead th{background:var(--paper);font-size:12px;font-weight:600;color:var(--ink2);padding:10px 14px;text-align:left;border-bottom:1px solid var(--paper3)}
+tbody td{padding:12px 14px;border-bottom:1px solid var(--paper3);font-size:13px}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--paper)}
+
+/* buttons */
+.btn-primary{background:var(--green);color:#fff;border:none;border-radius:var(--radius);padding:9px 18px;font-size:13px;cursor:pointer;font-weight:500}
+.btn-secondary{background:#fff;color:var(--ink);border:1px solid var(--paper3);border-radius:var(--radius);padding:7px 14px;font-size:13px;cursor:pointer}
+.btn-danger{background:#c0392b;color:#fff;border:none;border-radius:var(--radius);padding:7px 14px;font-size:13px;cursor:pointer}
+.btn-sm{padding:5px 10px;font-size:12px}
+
+/* search */
+.search-box{display:flex;align-items:center;gap:8px;background:var(--paper);border:1px solid var(--paper3);border-radius:var(--radius);padding:8px 14px;font-size:13px;min-width:260px}
+.search-box input{border:none;background:transparent;outline:none;width:100%;font-family:inherit;font-size:13px}
+
+/* tag */
+.tag{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:500}
+
+/* score badge */
+.score-badge{font-weight:700;font-size:15px}
+
+/* login */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--paper)}
+.login-card{background:#fff;border-radius:var(--radius-lg);padding:36px;width:360px;border:1px solid var(--paper3);box-shadow:0 4px 24px rgba(0,0,0,.06)}
+.login-logo{text-align:center;margin-bottom:24px}
+.login-title{text-align:center;font-size:18px;font-weight:700;margin-bottom:4px}
+.login-sub{text-align:center;font-size:13px;color:var(--ink2);margin-bottom:24px}
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:12px;color:var(--ink2);margin-bottom:6px}
+.form-group input{width:100%;border:1px solid var(--paper3);border-radius:var(--radius);padding:10px 14px;font-size:14px;font-family:inherit;outline:none;transition:border .15s;background:var(--paper)}
+.form-group input:focus{border-color:var(--green);background:#fff}
+.btn-login{width:100%;padding:12px;background:var(--green);color:#fff;border:none;border-radius:var(--radius);font-size:15px;font-weight:600;cursor:pointer;margin-top:8px}
+.conn-status{font-size:12px;padding:3px 10px;border-radius:20px;display:inline-flex;align-items:center;gap:4px}
+.conn-loading{background:#fef9e7;color:#7a5c00}
+.conn-ok{background:var(--green-l);color:var(--green)}
+.conn-err{background:#fde8e4;color:#c0392b}
+.err-msg{color:#c0392b;font-size:12px;margin-top:8px;min-height:16px;text-align:center}
+
+/* tab content */
+.tab-content{display:none}
+.tab-content.active{display:block}
+
+/* modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;display:none;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal-box{background:#fff;border-radius:var(--radius-lg);width:min(760px,95vw);max-height:90vh;overflow-y:auto;box-shadow:0 8px 48px rgba(0,0,0,.15)}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--paper3);position:sticky;top:0;background:#fff;z-index:10}
+.modal-body{padding:24px}
+.modal-footer{padding:16px 24px;border-top:1px solid var(--paper3);display:flex;gap:10px;justify-content:flex-end;position:sticky;bottom:0;background:#fff}
+.modal-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--ink2);padding:4px}
+
+/* radar */
+.report-section-title{font-size:12px;font-weight:600;color:var(--ink2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;padding-bottom:5px;border-bottom:1px solid var(--paper3)}
+
+/* score bars */
+.score-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.score-row .lbl{font-size:13px;width:72px;flex-shrink:0}
+.score-bar-wrap{flex:1;height:8px;background:#e8e5de;border-radius:4px;overflow:hidden}
+.score-bar-fill{height:100%;border-radius:4px;background:#2d5a3d}
+.score-pct{font-size:13px;font-weight:500;width:36px;text-align:right}
+
+/* dim analysis card */
+.dim-card{border:1px solid var(--paper3);border-radius:var(--radius);margin-bottom:12px;overflow:hidden}
+.dim-card-header{padding:12px 16px;display:flex;justify-content:space-between;align-items:center}
+.dim-card-body{padding:12px 16px;background:#fff}
+.dim-tag-report{font-size:12px;font-weight:600;padding:3px 10px;border-radius:20px}
+
+/* admin settings */
+.settings-section{background:#fff;border:1px solid var(--paper3);border-radius:var(--radius-lg);padding:20px;margin-bottom:20px}
+.settings-title{font-size:14px;font-weight:600;margin-bottom:14px}
+.admin-table-row{display:flex;align-items:center;padding:10px 0;border-bottom:1px solid var(--paper3);gap:12px;font-size:13px}
+.admin-table-row:last-child{border-bottom:none}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+</style>
+</head>
+<body>
+
+<!-- ── LOGIN ── -->
+<div id="page-login" class="login-wrap">
+  <div class="login-card">
+    <div class="login-logo">
+      <div style="font-size:28px;font-weight:800;color:var(--green)">17Life P@YEASY</div>
+    </div>
+    <div class="login-title">邏輯能力測驗管理系統</div>
+    <div class="login-sub">Logic Assessment Backend · Admin Only</div>
+    <div class="form-group"><label>帳號</label><input id="login-acc" placeholder="admin"></div>
+    <div class="form-group"><label>密碼</label><input id="login-pw" type="password" placeholder="••••••••"></div>
+    <div style="display:flex;justify-content:center;margin-bottom:8px">
+      <span class="conn-status conn-loading" id="conn-badge">⏳ 尚未連線</span>
+    </div>
+    <button class="btn-login" onclick="doLogin()">登入</button>
+    <div class="err-msg" id="login-err"></div>
+  </div>
+</div>
+
+<!-- ── MAIN APP ── -->
+<div id="page-app" style="display:none;width:100%">
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div style="font-size:15px;font-weight:700;color:var(--green)">17Life P@YEASY</div>
+      <div class="sidebar-logo-title">邏輯測驗管理系統</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-item active" onclick="showTab('dash')">📊 數據總覽</div>
+      <div class="nav-item" onclick="showTab('records')">📋 測驗紀錄</div>
+      <div class="nav-item" onclick="showTab('admins')">👥 管理員設定</div>
+      <div class="nav-item" onclick="showTab('settings')">⚙️ 系統設定</div>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="admin-chip">
+        <div class="admin-avatar" id="admin-avatar">A</div>
+        <div><div style="font-size:13px;font-weight:600" id="admin-name-display">—</div>
+        <div style="font-size:11px;color:var(--ink2)" id="admin-role-display">—</div></div>
+      </div>
+      <button class="btn-logout" onclick="doLogout()">登出</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <!-- DASH -->
+    <div class="tab-content active" id="tab-dash">
+      <div class="page-title">數據總覽</div>
+      <div class="page-sub">邏輯能力測驗即時統計數據
+        <span style="margin-left:12px;font-size:12px;padding:3px 10px;border-radius:20px;background:var(--green-l);color:var(--green)">☁ 資料來源：Google 試算表</span>
+      </div>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="sc-val" id="stat-total">—</div><div class="sc-lbl">總測驗人數</div></div>
+        <div class="stat-card"><div class="sc-val" id="stat-today">—</div><div class="sc-lbl">今日測驗</div></div>
+      </div>
+      <div class="table-wrap">
+        <div class="table-head"><h3>最近測驗紀錄</h3>
+          <button class="btn-secondary btn-sm" onclick="refreshAll()">🔄 重新整理</button>
+        </div>
+        <table><thead><tr>
+          <th>姓名</th><th>應徵職務</th>
+          <th id="dash-sort-date" onclick="sortRecords('date')" style="cursor:pointer;user-select:none">面試日期 ⇅</th>
+          <th>加權分數</th><th>最強維度</th>
+          <th id="dash-sort-testDate" onclick="sortRecords('testDate')" style="cursor:pointer;user-select:none">測驗日期時間 ⇅</th>
+          <th>操作</th>
+        </tr></thead>
+        <tbody id="dash-table-body"></tbody></table>
+      </div>
+    </div>
+
+    <!-- RECORDS -->
+    <div class="tab-content" id="tab-records">
+      <div class="page-title">測驗紀錄</div>
+      <div class="page-sub">所有求職者邏輯能力測驗資料（資料儲存於 Google 試算表）</div>
+      <div class="table-wrap">
+        <div class="table-head"><h3>求職者列表</h3>
+          <div style="display:flex;gap:10px">
+            <div class="search-box">🔍 <input id="rec-search" placeholder="搜尋姓名、職務…" oninput="renderRecords()"></div>
+            <button class="btn-secondary btn-sm" onclick="refreshAll()">🔄 重新整理</button>
+          </div>
+        </div>
+        <table><thead><tr>
+          <th>姓名</th><th>電話</th><th>應徵職務</th>
+          <th id="sort-date" onclick="sortRecords('date')" style="cursor:pointer;user-select:none">面試日期 ⇅</th>
+          <th>加權分</th><th>作答率</th><th>完成時間</th>
+          <th id="sort-testDate" onclick="sortRecords('testDate')" style="cursor:pointer;user-select:none">測驗日期時間 ⇅</th>
+          <th>操作</th>
+        </tr></thead>
+        <tbody id="rec-table-body"></tbody></table>
+        <div id="rec-empty" style="padding:40px;text-align:center;color:var(--ink3);display:none">尚無測驗紀錄</div>
+      </div>
+    </div>
+
+    <!-- ADMINS -->
+    <div class="tab-content" id="tab-admins">
+      <div class="page-title">管理員設定</div>
+      <div class="page-sub">管理系統管理員帳號</div>
+      <div class="settings-section">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <div class="settings-title" style="margin-bottom:0">管理員列表</div>
+          <button class="btn-primary btn-sm" onclick="openAddAdmin()">＋ 新增管理員</button>
+        </div>
+        <div id="admin-list"></div>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="tab-content" id="tab-settings">
+      <div class="page-title">系統設定</div>
+      <div class="page-sub">查看連線狀態與更改帳號資料</div>
+      <div class="settings-section">
+        <div class="settings-title">Apps Script URL</div>
+        <div id="cfg-url-display" style="font-size:13px;color:var(--ink2);word-break:break-all;padding:10px;background:var(--paper);border-radius:var(--radius)"></div>
+        <button class="btn-secondary btn-sm" style="margin-top:10px" onclick="testConn()">🔗 測試連線</button>
+      </div>
+      <div class="settings-section">
+        <div class="settings-title">更改我的帳號資料</div>
+        <div class="form-row">
+          <div class="form-group"><label>新帳號</label><input id="cfg-new-acc" placeholder="留空不更改"></div>
+          <div class="form-group"><label>新密碼</label><input id="cfg-new-pw" type="password" placeholder="留空不更改"></div>
+        </div>
+        <div class="form-group"><label>Email（接收通知）</label><input id="cfg-new-email" placeholder="選填"></div>
+        <button class="btn-primary btn-sm" onclick="saveMyAccount()">更新帳號資料</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── REPORT MODAL ── -->
+<div class="modal-overlay" id="modal-report">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:18px">📊</span>
+        <div><div style="font-size:16px;font-weight:700">邏輯能力測驗報告</div>
+          <div style="font-size:12px;color:var(--ink2)" id="report-date-sub">—</div>
+        </div>
+      </div>
+      <button class="modal-close" onclick="closeModal('modal-report')">✕</button>
+    </div>
+    <div class="modal-body" id="modal-report-body"></div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('modal-report')">關閉</button>
+      <button class="btn-secondary" onclick="printReport()">🖨 列印</button>
+      <button class="btn-primary" onclick="downloadPDF()">⬇ 下載 PDF</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── ADMIN MODAL ── -->
+<div class="modal-overlay" id="modal-admin">
+  <div class="modal-box" style="max-width:420px">
+    <div class="modal-header">
+      <div style="font-size:15px;font-weight:700" id="admin-modal-title">新增管理員</div>
+      <button class="modal-close" onclick="closeModal('modal-admin')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group"><label>姓名 *</label><input id="adm-name"></div>
+      <div class="form-row">
+        <div class="form-group"><label>帳號 *</label><input id="adm-acc"></div>
+        <div class="form-group"><label>密碼 *</label><input id="adm-pw" type="password"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>角色</label>
+          <select id="adm-role" style="width:100%;border:1px solid var(--paper3);border-radius:var(--radius);padding:10px 14px;font-size:14px;font-family:inherit;outline:none;background:var(--paper)">
+            <option value="admin">管理員</option>
+            <option value="super">超級管理員</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Email（選填）</label><input id="adm-email"></div>
+      </div>
+      <div style="font-size:12px;color:var(--ink2)">⚠ 帳號與密碼不可以 0 開頭</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('modal-admin')">取消</button>
+      <button class="btn-primary" id="adm-save-btn" onclick="saveAdmin()">儲存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════════════════════════════════
+const HARDCODED_URL = 'https://script.google.com/macros/s/AKfycbwR3Fd9j0P_ZpSv5L0P1z8LLWucWs5FTC5IyjXHH9Q241D6FU4S8VrQ4_p9FQanWQnCBw/exec';
+const DIMS       = ['數據推理','圖像推理','計算邏輯','商業邏輯'];
+const WEIGHTS    = {'數據推理':30,'圖像推理':20,'計算邏輯':25,'商業邏輯':25};
+const DIM_COLORS = {'數據推理':'#b03a2e','圖像推理':'#117a65','計算邏輯':'#1e8449','商業邏輯':'#1a5276'};
+const DIM_BG     = {'數據推理':'#fceaea','圖像推理':'#e8f8f5','計算邏輯':'#eafaf1','商業邏輯':'#ebf5fb'};
+const DIM_KEYS   = {'數據推理':'abstract','圖像推理':'visual','計算邏輯':'quant','商業邏輯':'critical'};
+const DIM_DESC   = {
+  '數據推理':'數字規律與邏輯推演，反映數字敏銳度與邏輯能力',
+  '圖像推理':'圖形矩陣空間邏輯，反映非語言推理與模式識別能力',
+  '計算邏輯':'商業數字分析判斷，反映數據解讀與商業計算能力',
+  '商業邏輯':'職場情境批判判斷，反映實務邏輯與決策分析能力'
+};
+const BAND_LABELS = ['極低','很低','低','偏低','中低','中等','中高','偏高','高','極高'];
+
+function getBand(v) {
+  v = parseInt(v)||0;
+  if(v>=90) return 9; if(v>=80) return 8; if(v>=70) return 7; if(v>=60) return 6;
+  if(v>=50) return 5; if(v>=40) return 4; if(v>=30) return 3; if(v>=20) return 2;
+  if(v>=10) return 1; return 0;
+}
+
+// ── Sort ──
+let sortField='testDate', sortAsc=false;
+function sortRecords(f){
+  if(sortField===f){sortAsc=!sortAsc}else{sortField=f;sortAsc=false}
+  renderRecords(); renderDashTable(); updateSortHeaders();
+}
+function getSortedRecords(recs){
+  return [...recs].sort((a,b)=>{
+    var va=String(a[sortField]||''), vb=String(b[sortField]||'');
+    var c=va.localeCompare(vb,'zh-TW'); return sortAsc?c:-c;
+  });
+}
+function updateSortHeaders(){
+  var fields={'sort-date':'面試日期','sort-testDate':'測驗日期時間','dash-sort-date':'面試日期','dash-sort-testDate':'測驗日期時間'};
+  Object.keys(fields).forEach(id=>{
+    var th=document.getElementById(id); if(!th)return;
+    var f=id.replace('dash-sort-','').replace('sort-','');
+    th.textContent=fields[id]+(sortField===f?(sortAsc?' ▲':' ▼'):' ⇅');
+  });
+}
+
+// ── API ──
+var currentAdmin=null, allRecords=[], allAdmins=[];
+
+async function api(payload){
+  var jsonStr=JSON.stringify(payload);
+  var encoded=encodeURIComponent(jsonStr);
+  var cb='cb_'+Date.now();
+  var url=HARDCODED_URL+'?payload='+encoded+'&callback='+cb+'&_t='+Date.now();
+  var resp=await fetch(url,{method:'GET',redirect:'follow'});
+  if(!resp.ok) throw new Error('HTTP '+resp.status);
+  var text=await resp.text();
+  if(text.includes('<!DOCTYPE')||text.includes('<html')) throw new Error('收到 HTML 頁面，請確認部署設定');
+  var match=text.match(/^[^(]+\((.+)\)\s*;?\s*$/s);
+  if(!match) throw new Error('回應格式錯誤：'+text.substring(0,100));
+  var data=JSON.parse(match[1]);
+  if(data.status==='error') throw new Error(data.message);
+  return data;
+}
+
+// ── Login ──
+(function(){
+  setTimeout(async function(){
+    var badge=document.getElementById('conn-badge'); if(!badge)return;
+    try{
+      badge.textContent='🔄 連線測試中...'; badge.className='conn-status conn-loading';
+      var r=await api({action:'login',acc:'__ping__',pw:'__ping__'});
+      badge.textContent='✓ 已連線'; badge.className='conn-status conn-ok';
+    }catch(e){
+      if(e.message==='Invalid credentials'){badge.textContent='✓ 已連線';badge.className='conn-status conn-ok';}
+      else{badge.textContent='✗ 連線失敗';badge.className='conn-status conn-err';}
+    }
+  },500);
+})();
+
+async function doLogin(){
+  var acc=document.getElementById('login-acc').value.trim();
+  var pw=document.getElementById('login-pw').value;
+  var err=document.getElementById('login-err');
+  err.textContent='登入中…';
+  try{
+    var r=await api({action:'login',acc,pw});
+    currentAdmin=r.admin;
+    document.getElementById('admin-avatar').textContent=currentAdmin.name.charAt(0);
+    document.getElementById('admin-name-display').textContent=currentAdmin.name;
+    document.getElementById('admin-role-display').textContent=currentAdmin.role==='super'?'超級管理員':'管理員';
+    document.getElementById('page-login').style.display='none';
+    document.getElementById('page-app').style.display='flex';
+    document.getElementById('cfg-url-display').textContent='目前連線（內建）：'+HARDCODED_URL;
+    await refreshAll();
+    updateSortHeaders();
+  }catch(e){ err.textContent=e.message==='Invalid credentials'?'帳號或密碼錯誤':'連線失敗：'+e.message; }
+}
+document.getElementById('login-pw').addEventListener('keydown',e=>{ if(e.key==='Enter') doLogin(); });
+function doLogout(){ location.reload(); }
+
+async function refreshAll(){
+  try{
+    var [recR,admR]=await Promise.all([api({action:'getLogicRecords'}),api({action:'getAdmins'})]);
+    allRecords=recR.records||[];
+    allAdmins=admR.admins||[];
+    renderStats(); renderDashTable(); renderRecords(); renderAdminList();
+  }catch(e){ alert('資料載入失敗：'+e.message); }
+}
+
+// ── Stats ──
+function renderStats(){
+  document.getElementById('stat-total').textContent=allRecords.length;
+  var today=new Date().toLocaleDateString('zh-TW');
+  var todayN=allRecords.filter(r=>{
+    try{
+      if(!r.testDate)return false;
+      var d=new Date(r.testDate.split(' ')[0].replace(/\//g,'-'));
+      return d.toLocaleDateString('zh-TW')===today;
+    }catch{return false}
+  }).length;
+  document.getElementById('stat-today').textContent=todayN;
+}
+
+// ── Dashboard table ──
+function renderDashTable(){
+  var recent=getSortedRecords(allRecords).slice(0,8);
+  var tb=document.getElementById('dash-table-body');
+  if(!recent.length){tb.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--ink3);padding:32px">尚無紀錄</td></tr>';return}
+  tb.innerHTML=recent.map(r=>`
+    <tr>
+      <td><strong>${r.name}</strong></td><td>${r.job}</td>
+      <td>${r.date||'—'}</td>
+      <td><span class="score-badge" style="color:var(--green)">${r.weightedScore||0}</span> 分</td>
+      <td><span class="tag" style="background:${DIM_BG[r.mainDim]||'#f0f0f0'};color:${DIM_COLORS[r.mainDim]||'#333'}">${r.mainDim||'—'}</span></td>
+      <td style="font-size:12px;color:var(--ink3)">${r.testDate||'<span style="color:#bbb">未記錄</span>'}</td>
+      <td><button class="btn-secondary btn-sm" onclick="openReport(${r._sheetRow})">📄 報告</button></td>
+    </tr>`).join('');
+}
+
+// ── Records table ──
+function renderRecords(){
+  var kw=(document.getElementById('rec-search').value||'').toLowerCase();
+  var filtered=getSortedRecords(allRecords).filter(r=>r.name.includes(kw)||r.job.includes(kw));
+  var tb=document.getElementById('rec-table-body');
+  var empty=document.getElementById('rec-empty');
+  if(!filtered.length){tb.innerHTML='';empty.style.display='block';return}
+  empty.style.display='none';
+  tb.innerHTML=filtered.map(r=>`
+    <tr>
+      <td><strong>${r.name}</strong></td>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:13px">${r.phone}</td>
+      <td>${r.job}</td><td>${r.date||'—'}</td>
+      <td><strong>${r.weightedScore||0}</strong> 分</td>
+      <td>${r.answerRate||'—'}</td>
+      <td style="font-size:13px;color:var(--ink2)">${r.elapsed||'—'}</td>
+      <td style="font-size:12px;color:var(--ink3)">${r.testDate||'<span style="color:#bbb">未記錄</span>'}</td>
+      <td style="white-space:nowrap">
+        <button class="btn-secondary btn-sm" style="margin-right:6px" onclick="openReport(${r._sheetRow})">📄 報告</button>
+        <button class="btn-danger btn-sm" onclick="deleteRecord(${r._sheetRow})">刪除</button>
+      </td>
+    </tr>`).join('');
+}
+
+// ── Report ──
+function buildRadarSVG(scores){
+  var size=280, pad=52, vb=size+pad*2, cx=vb/2, cy=vb/2, R=size/2-8;
+  var N=DIMS.length;
+  var angle=i=>(-Math.PI/2)+(2*Math.PI/N)*i;
+  var pt=(r,i)=>{var a=angle(i);return[cx+r*Math.cos(a),cy+r*Math.sin(a)]};
+  var gridSvg='';
+  [.2,.4,.6,.8,1].forEach(t=>{
+    var pts=DIMS.map((_,i)=>pt(R*t,i).join(',')).join(' ');
+    gridSvg+='<polygon points="'+pts+'" fill="none" stroke="#e8e5de" stroke-width="1"/>';
+  });
+  DIMS.forEach((_,i)=>{var[x1,y1]=pt(0,i);var[x2,y2]=pt(R,i);gridSvg+='<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="#e8e5de" stroke-width="1"/>';});
+  var vals=DIMS.map(d=>((scores[DIM_KEYS[d]]||0)/100));
+  var dataPts=vals.map((v,i)=>pt(R*v,i).join(',')).join(' ');
+  var labelSvg='';
+  DIMS.forEach((d,i)=>{
+    var col=DIM_COLORS[d]||'#333';
+    var[lx,ly]=pt(R+30,i);
+    var anchor=lx<cx-10?'end':lx>cx+10?'start':'middle';
+    var dy=ly<cy-10?-6:ly>cy+10?6:0;
+    labelSvg+='<text x="'+lx+'" y="'+(ly+dy+4)+'" text-anchor="'+anchor+'" font-size="12" font-weight="600" fill="'+col+'" font-family="Noto Sans TC,sans-serif">'+d+'</text>';
+  });
+  var dots=vals.map((v,i)=>{var[px,py]=pt(R*v,i);return'<circle cx="'+px+'" cy="'+py+'" r="4" fill="#2d5a3d"/>';}).join('');
+  return '<svg width="'+(size+20)+'" height="'+(size+20)+'" viewBox="0 0 '+vb+' '+vb+'" xmlns="http://www.w3.org/2000/svg">'+gridSvg+'<polygon points="'+dataPts+'" fill="rgba(45,90,61,0.15)" stroke="#2d5a3d" stroke-width="2.5" stroke-linejoin="round"/>'+dots+labelSvg+'</svg>';
+}
+
+function openReport(sheetRow){
+  var r=allRecords.find(x=>Number(x._sheetRow)===Number(sheetRow));
+  if(!r){alert('找不到紀錄，請重新整理後再試');return}
+  document.getElementById('report-date-sub').textContent=r.testDate||'';
+
+  // Build scores object for radar
+  var scores={};
+  DIMS.forEach(d=>{ scores[DIM_KEYS[d]]=r[DIM_KEYS[d]]||0; });
+
+  // Sort dims by score desc
+  var sortedDims=[...DIMS].sort((a,b)=>(r[DIM_KEYS[b]]||0)-(r[DIM_KEYS[a]]||0));
+
+  var scoresHtml=sortedDims.map(d=>{
+    var v=parseInt(r[DIM_KEYS[d]])||0;
+    var col=v>=80?'#1a5c2a':v>=60?'#2e7d32':v>=40?'#7a5c00':v>=20?'#c0392b':'#8b2020';
+    return `<div class="score-row">
+      <span class="lbl">${d}</span>
+      <div class="score-bar-wrap"><div class="score-bar-fill" style="width:${v}%;background:${col}"></div></div>
+      <span class="score-pct">${v}%</span>
+    </div>`;
+  }).join('');
+
+  // Dim analysis
+  var dimAnalysis=sortedDims.map(d=>{
+    var v=parseInt(r[DIM_KEYS[d]])||0;
+    var band=getBand(v);
+    var label=BAND_LABELS[band];
+    var col=DIM_COLORS[d];
+    var bg=DIM_BG[d];
+    var w=WEIGHTS[d];
+    var analysis=getDimAnalysis(d, band);
+    return `<div class="dim-card">
+      <div class="dim-card-header" style="background:${bg}">
+        <div>
+          <span class="dim-tag-report" style="background:${col};color:#fff">${d}（佔${w}%）</span>
+          <span style="font-size:13px;color:var(--ink2);margin-left:8px">${DIM_DESC[d]}</span>
+        </div>
+        <span style="font-size:18px;font-weight:700;color:${col}">${v}% <span style="font-size:13px">${label}</span></span>
+      </div>
+      <div class="dim-card-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div>
+            <div style="font-size:12px;font-weight:600;color:#1a5c2a;margin-bottom:6px">✓ 優勢特點</div>
+            ${analysis.pros.map(p=>'<div style="font-size:13px;color:var(--ink);margin-bottom:4px">• '+p+'</div>').join('')}
+          </div>
+          <div>
+            <div style="font-size:12px;font-weight:600;color:#c0392b;margin-bottom:6px">⚠ 注意事項</div>
+            ${analysis.cons.map(c=>'<div style="font-size:13px;color:var(--ink);margin-bottom:4px">• '+c+'</div>').join('')}
+          </div>
+        </div>
+        <div style="margin-top:10px;padding:8px 12px;background:var(--paper);border-radius:6px;font-size:13px;color:var(--ink2)">
+          💡 面試重點：${analysis.tip}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Overall weighted score interpretation
+  var ws=r.weightedScore||0;
+  var wsLabel=ws>=85?'卓越':ws>=70?'優秀':ws>=55?'良好':ws>=40?'中等':'需加強';
+  var wsColor=ws>=85?'#1a5c2a':ws>=70?'#2e7d32':ws>=55?'#7a5c00':ws>=40?'#c0392b':'#8b2020';
+
+  document.getElementById('modal-report-body').innerHTML = `
+    <div style="background:#fff;border:1px solid var(--paper3);border-radius:var(--radius);padding:16px;margin-bottom:16px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:14px">
+        <div><div style="font-size:11px;color:var(--ink2)">姓名</div><div style="font-size:16px;font-weight:600">${r.name}</div></div>
+        <div><div style="font-size:11px;color:var(--ink2)">聯絡電話</div><div style="font-size:16px;font-weight:600">${r.phone}</div></div>
+        <div><div style="font-size:11px;color:var(--ink2)">應徵職務</div><div style="font-size:16px;font-weight:600">${r.job}</div></div>
+        <div><div style="font-size:11px;color:var(--ink2)">面試日期</div><div style="font-size:16px;font-weight:600">${r.date||'—'}</div></div>
+        <div><div style="font-size:11px;color:var(--ink2)">作答率</div><div style="font-size:16px;font-weight:600">${r.answerRate||'—'}</div></div>
+        <div><div style="font-size:11px;color:var(--ink2)">作答時間</div><div style="font-size:16px;font-weight:600">${r.elapsed||'—'}</div></div>
+      </div>
+    </div>
+
+    <div style="background:${wsColor};border-radius:var(--radius);padding:16px 20px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div style="color:rgba(255,255,255,.8);font-size:13px">加權邏輯能力總分</div>
+        <div style="color:#fff;font-size:13px;margin-top:4px">最強維度：<strong>${r.mainDim||'—'}</strong></div>
+      </div>
+      <div style="color:#fff;font-size:36px;font-weight:700">${ws} <span style="font-size:16px">${wsLabel}</span></div>
+    </div>
+
+    <div class="report-section-title">五維度邏輯雷達圖</div>
+    <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:16px">
+      <div style="flex-shrink:0">${buildRadarSVG(scores)}</div>
+      <div style="flex:1;padding-top:8px">${scoresHtml}</div>
+    </div>
+
+    <div class="report-section-title">各維度能力詳析</div>
+    ${dimAnalysis}
+
+    <div style="text-align:center;font-size:12px;color:var(--ink3);margin-top:20px;padding-top:12px;border-top:1px solid var(--paper3)">
+      機密文件 — 僅供人資部門使用 · 17Life P@YEASY 邏輯能力測驗管理系統
+    </div>`;
+
+  document.getElementById('modal-report').classList.add('open');
+}
+
+// ── Dimension Analysis Data ──
+function getDimAnalysis(dim, band) {
+  var data = {
+    '數據推理': [
+      {pros:['能識別基本數列規律','有基本數字邏輯概念','在簡單推理任務中能完成'],cons:['複雜的多步推理有困難','推理速度較慢','需要更多練習提升準確率'],tip:'評估職位所需的邏輯推理深度，確認是否在其能力範圍內。'},
+      {pros:['具備一定的邏輯推理能力','能解決中等難度數列題','有基本的模式識別能力'],cons:['複雜規律識別有挑戰','需要更多時間思考','準確率仍有提升空間'],tip:'透過中等難度題目評估實際推理能力。'},
+      {pros:['數字邏輯能力不錯','能穩定識別中等複雜規律','推理有條理'],cons:['高難度多步推理偶有失誤','時間壓力下準確率略降'],tip:'評估在時間壓力下的推理穩定性。'},
+      {pros:['良好的數字規律識別能力','推理速度與準確率平衡','邏輯分析清晰'],cons:['極難題仍有挑戰','偶爾被干擾項誤導'],tip:'評估在實際工作中的邏輯應用方式。'},
+      {pros:['優秀的數字邏輯與推理能力','能快速識別複雜規律','學習新概念速度快'],cons:['可能在開放性問題中過度分析'],tip:'評估其邏輯能力在實際工作場景中的應用。'},
+      {pros:['優秀的數字邏輯與推理能力','能快速識別複雜規律','學習新概念速度快'],cons:['可能在開放性問題中過度分析'],tip:'評估其邏輯能力在實際工作場景中的應用。'},
+      {pros:['卓越的數字邏輯能力','推理準確率高','能有效處理多步邏輯問題'],cons:['對簡單重複工作可能興趣不足'],tip:'評估職位複雜度是否能激發其能力。'},
+      {pros:['卓越的數字邏輯能力','推理準確率高','能有效處理多步邏輯問題'],cons:['對簡單重複工作可能興趣不足'],tip:'評估職位複雜度是否能激發其能力。'},
+      {pros:['頂尖的數字邏輯推理能力','極高準確率','能快速解決複雜規律問題'],cons:['可能對常規工作感到無聊'],tip:'評估是否有足夠挑戰性的職位能發揮其能力。'},
+      {pros:['頂尖的數字邏輯推理能力','極高準確率','能快速解決複雜規律問題'],cons:['可能對常規工作感到無聊'],tip:'評估是否有足夠挑戰性的職位能發揮其能力。'},
+    ],
+    '圖像推理': [
+      {pros:['有基本的圖形辨識能力','能完成簡單的圖形匹配任務'],cons:['複雜矩陣推理有明顯困難','空間推理能力需要加強'],tip:'評估職位對圖形分析的實際需求。'},
+      {pros:['具備一定的圖形規律識別能力','能在有提示下完成矩陣推理'],cons:['多維度規律同時識別有困難','速度較慢'],tip:'了解在輔助工具下的圖形分析能力。'},
+      {pros:['圖形推理能力穩定','能識別大多數常見的矩陣規律','空間思考有基礎'],cons:['複雜多變數規律偶有失誤'],tip:'評估在視覺化分析任務中的表現。'},
+      {pros:['良好的圖形推理能力','能快速識別矩陣規律','空間邏輯清晰'],cons:['極複雜的多維規律偶有挑戰'],tip:'評估在需要視覺分析的工作中如何應用此能力。'},
+      {pros:['優秀的圖形推理與空間邏輯','矩陣推理準確率高','非語言邏輯能力強'],cons:['可能在純文字任務中表現略低於圖形任務'],tip:'評估此能力在實際工作中的應用場景。'},
+      {pros:['優秀的圖形推理與空間邏輯','矩陣推理準確率高','非語言邏輯能力強'],cons:['可能在純文字任務中表現略低於圖形任務'],tip:'評估此能力在實際工作中的應用場景。'},
+      {pros:['卓越的空間推理能力','能快速解讀複雜圖形規律','非語言邏輯思維突出'],cons:['對文字型任務的偏好可能略低'],tip:'評估如何將空間邏輯應用於工作設計和分析。'},
+      {pros:['卓越的空間推理能力','能快速解讀複雜圖形規律','非語言邏輯思維突出'],cons:['對文字型任務的偏好可能略低'],tip:'評估如何將空間邏輯應用於工作設計和分析。'},
+      {pros:['頂尖的圖形推理能力','能瞬間識別最複雜的矩陣規律','視覺邏輯極為敏銳'],cons:['可能對語言型問題相對較不突出'],tip:'評估是否有設計、工程或視覺分析類職位能充分發揮。'},
+      {pros:['頂尖的圖形推理能力','能瞬間識別最複雜的矩陣規律','視覺邏輯極為敏銳'],cons:['可能對語言型問題相對較不突出'],tip:'評估是否有設計、工程或視覺分析類職位能充分發揮。'},
+    ],
+    '計算邏輯': [
+      {pros:['能完成基礎數字計算','對基本商業數字有認識'],cons:['複雜商業計算準確率偏低','數據解讀深度有限'],tip:'確認職位對數量推理的需求在其能力範圍內。'},
+      {pros:['能完成基礎的商業計算','對基本指標有理解','在簡單數據中能找出關鍵數字'],cons:['複雜計算準確率需提升','商業數據解讀偶有偏差'],tip:'了解在工具輔助下的計算分析能力。'},
+      {pros:['計算邏輯能力良好','能解讀基本商業數據','數字判斷有基礎'],cons:['在時間壓力下計算準確率略降','高階財務分析有提升空間'],tip:'評估使用分析工具時能否有效解讀數據。'},
+      {pros:['強健的計算邏輯能力','能快速解讀複雜商業數字','判斷準確'],cons:['在極複雜的計算問題上偶有失誤'],tip:'評估在數據驅動決策場景中的實際表現。'},
+      {pros:['卓越的計算邏輯與商業分析能力','能快速準確解讀複雜數據','推理嚴謹'],cons:['可能過度依賴數字而忽略質性因素'],tip:'評估如何將計算能力與商業洞察相結合。'},
+      {pros:['卓越的計算邏輯與商業分析能力','能快速準確解讀複雜數據','推理嚴謹'],cons:['可能過度依賴數字而忽略質性因素'],tip:'評估如何將計算能力與商業洞察相結合。'},
+      {pros:['頂尖的計算邏輯能力','商業數字敏銳度極高','分析速度快且準確'],cons:['對數字不精確的情況可能缺乏耐心'],tip:'評估在數據不完整時如何做出有效的商業判斷。'},
+      {pros:['頂尖的計算邏輯能力','商業數字敏銳度極高','分析速度快且準確'],cons:['對數字不精確的情況可能缺乏耐心'],tip:'評估在數據不完整時如何做出有效的商業判斷。'},
+      {pros:['極強的計算分析能力','能識別複雜的數字陷阱','商業數據解讀速度與深度俱佳'],cons:['對數字精確度要求極高可能影響效率'],tip:'最適合需要高度數字敏感度的財務或分析職位。'},
+      {pros:['極強的計算分析能力','能識別複雜的數字陷阱','商業數據解讀速度與深度俱佳'],cons:['對數字精確度要求極高可能影響效率'],tip:'最適合需要高度數字敏感度的財務或分析職位。'},
+    ],
+    '商業邏輯': [
+      {pros:['有基本的職場判斷能力','能識別明顯的邏輯問題'],cons:['複雜職場情境的邏輯分析有困難','容易受表面現象影響判斷'],tip:'評估在簡單決策場景中的表現。'},
+      {pros:['具備一定的職場批判思考','能識別部分推論問題'],cons:['在複雜論點中容易被誤導','分析深度有待提升'],tip:'透過情境題評估實際的論點分析能力。'},
+      {pros:['批判思考意識良好','能識別大部分常見邏輯問題','職場判斷有基本架構'],cons:['在高複雜度情境仍有挑戰'],tip:'評估在需要快速批判分析的工作場景中的表現。'},
+      {pros:['職場邏輯判斷能力強','能系統性分析情境優劣','識別問題準確率高'],cons:['偶爾在模稜兩可情況下過度分析'],tip:'評估在團隊決策中如何應用批判思考。'},
+      {pros:['卓越的職場批判分析能力','能看穿複雜情境中的邏輯問題','判斷嚴謹'],cons:['批判性過強可能在協作中顯得苛刻'],tip:'評估如何在保持批判性的同時維持協作。'},
+      {pros:['卓越的職場批判分析能力','能看穿複雜情境中的邏輯問題','判斷嚴謹'],cons:['批判性過強可能在協作中顯得苛刻'],tip:'評估如何在保持批判性的同時維持協作。'},
+      {pros:['頂尖的商業邏輯判斷能力','極少被複雜情境誤導','分析深刻全面'],cons:['決策時批判過程可能較緩慢'],tip:'評估如何將批判思維轉化為建設性的組織貢獻。'},
+      {pros:['頂尖的商業邏輯判斷能力','極少被複雜情境誤導','分析深刻全面'],cons:['決策時批判過程可能較緩慢'],tip:'評估如何將批判思維轉化為建設性的組織貢獻。'},
+      {pros:['極強的商業批判邏輯','能在極複雜的職場情境中做出精準判斷','分析維度多元'],cons:['標準極高可能對環境要求較多'],tip:'最適合需要高度商業判斷力的策略或管理職位。'},
+      {pros:['極強的商業批判邏輯','能在極複雜的職場情境中做出精準判斷','分析維度多元'],cons:['標準極高可能對環境要求較多'],tip:'最適合需要高度商業判斷力的策略或管理職位。'},
+    ]
+  };
+  var list = data[dim];
+  return list ? (list[Math.min(band, list.length-1)] || list[list.length-1]) : {pros:['—'],cons:['—'],tip:'—'};
+}
+
+// ── Delete record ──
+async function deleteRecord(sheetRow){
+  if(!confirm('確定要刪除這筆紀錄？')) return;
+  try{
+    await api({action:'deleteLogicRecord', idx:sheetRow});
+    await refreshAll();
+  }catch(e){ alert('刪除失敗：'+e.message); }
+}
+
+// ── Admin management ──
+function renderAdminList(){
+  var el=document.getElementById('admin-list');
+  if(!allAdmins.length){el.innerHTML='<div style="color:var(--ink3);font-size:13px">尚無管理員資料</div>';return}
+  el.innerHTML=allAdmins.map(a=>`
+    <div class="admin-table-row">
+      <div class="admin-avatar" style="width:28px;height:28px;font-size:12px">${a.name.charAt(0)}</div>
+      <div style="flex:1"><div style="font-size:13px;font-weight:600">${a.name}</div>
+        <div style="font-size:12px;color:var(--ink2)">${a.acc}${a.email?' · '+a.email:''}</div></div>
+      <span class="tag" style="background:var(--green-l);color:var(--green)">${a.role==='super'?'超級管理員':'管理員'}</span>
+      <button class="btn-secondary btn-sm" onclick="editAdmin(${a._sheetRow})">編輯</button>
+      <button class="btn-danger btn-sm" onclick="removeAdmin(${a._sheetRow})">刪除</button>
+    </div>`).join('');
+}
+
+var editingAdminRow=null;
+function openAddAdmin(){ editingAdminRow=null; document.getElementById('admin-modal-title').textContent='新增管理員'; ['adm-name','adm-acc','adm-pw','adm-email'].forEach(id=>document.getElementById(id).value=''); document.getElementById('adm-role').value='admin'; document.getElementById('modal-admin').classList.add('open'); }
+function editAdmin(row){ editingAdminRow=row; var a=allAdmins.find(x=>x._sheetRow===row); if(!a)return; document.getElementById('admin-modal-title').textContent='編輯管理員'; document.getElementById('adm-name').value=a.name; document.getElementById('adm-acc').value=a.acc; document.getElementById('adm-pw').value=''; document.getElementById('adm-role').value=a.role||'admin'; document.getElementById('adm-email').value=a.email||''; document.getElementById('modal-admin').classList.add('open'); }
+async function saveAdmin(){
+  var name=document.getElementById('adm-name').value.trim();
+  var acc=document.getElementById('adm-acc').value.trim();
+  var pw=document.getElementById('adm-pw').value;
+  var role=document.getElementById('adm-role').value;
+  var email=document.getElementById('adm-email').value.trim();
+  if(!name||!acc||(editingAdminRow===null&&!pw)){alert('請填寫必填欄位');return}
+  if(acc[0]==='0'||pw[0]==='0'){alert('帳號與密碼不可以0開頭');return}
+  try{
+    if(editingAdminRow===null){await api({action:'saveAdmin',name,acc,pw,role,email});}
+    else{await api({action:'updateAdmin',_sheetRow:editingAdminRow,name,acc,pw:pw||'__keep__',role,email});}
+    closeModal('modal-admin'); await refreshAll();
+  }catch(e){alert('儲存失敗：'+e.message);}
+}
+async function removeAdmin(row){
+  if(!confirm('確定要刪除此管理員？'))return;
+  try{await api({action:'deleteAdmin',idx:row});await refreshAll();}catch(e){alert('刪除失敗：'+e.message);}
+}
+async function saveMyAccount(){
+  var acc=document.getElementById('cfg-new-acc').value.trim();
+  var pw=document.getElementById('cfg-new-pw').value;
+  var email=document.getElementById('cfg-new-email').value.trim();
+  if((acc&&acc[0]==='0')||(pw&&pw[0]==='0')){alert('帳號與密碼不可以0開頭');return}
+  try{await api({action:'updateAdmin',_sheetRow:currentAdmin._sheetRow,name:currentAdmin.name,acc:acc||currentAdmin.acc,pw:pw||'__keep__',role:currentAdmin.role,email:email||currentAdmin.email||''});alert('更新成功');}catch(e){alert('更新失敗：'+e.message);}
+}
+
+// ── Misc ──
+function showTab(t){
+  document.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
+  document.getElementById('tab-'+t).classList.add('active');
+  var idx={'dash':0,'records':1,'admins':2,'settings':3}[t]||0;
+  document.querySelectorAll('.nav-item')[idx].classList.add('active');
+}
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+async function testConn(){try{var r=await api({action:'login',acc:'__ping__',pw:'__ping__'});alert('連線正常！');}catch(e){if(e.message==='Invalid credentials')alert('連線正常！');else alert('連線失敗：'+e.message);}}
+function printReport(){window.print();}
+function downloadPDF(){
+  var el=document.getElementById('modal-report-body');
+  html2canvas(el,{scale:2,useCORS:true}).then(canvas=>{
+    var {jsPDF}=window.jspdf;
+    var pdf=new jsPDF('p','mm','a4');
+    var w=pdf.internal.pageSize.getWidth()-20;
+    var h=(canvas.height*w)/canvas.width;
+    var pages=Math.ceil(h/277);
+    for(var i=0;i<pages;i++){
+      if(i>0)pdf.addPage();
+      var srcY=i*277*(canvas.width/w);
+      var srcH=Math.min(277*(canvas.width/w),canvas.height-srcY);
+      var tmp=document.createElement('canvas');
+      tmp.width=canvas.width; tmp.height=srcH;
+      tmp.getContext('2d').drawImage(canvas,0,srcY,canvas.width,srcH,0,0,canvas.width,srcH);
+      pdf.addImage(tmp.toDataURL('image/jpeg',0.92),'JPEG',10,10,w,srcH*(w/canvas.width));
+    }
+    pdf.save(document.querySelector('#modal-report-body strong')?.textContent+'_邏輯能力報告.pdf'||'邏輯能力報告.pdf');
+  });
+}
+</script>
+</body>
+</html>
