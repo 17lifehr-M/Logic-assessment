@@ -570,8 +570,12 @@ function openReport(sheetRow){
     critical:{h:'批判思考可能在協作場合顯得較為嚴苛',m:'在複雜的多方情境判斷上仍有提升空間',l:'職場邏輯判斷能力需要加強，建議多接觸實際業務情境'},
   };
   function bk(v){return v>=70?'h':v>=40?'m':'l';}
-  var pros=sorted.slice(0,3).map(function(d){var pm=prosMap[d.key];return pm?pm[bk(dimScores[d.key])]:'—';});
-  var cons=[...sorted].reverse().slice(0,3).map(function(d){var cm=consMap[d.key];return cm?cm[bk(dimScores[d.key])]:'—';});
+  // 優點：正確率 > 60% 的維度，由高至低最多取3個
+  var prosFiltered=sorted.filter(function(d){return dimScores[d.key]>60;});
+  var pros=prosFiltered.map(function(d){var pm=prosMap[d.key];return pm?pm[bk(dimScores[d.key])]:'—';});
+  // 注意事項：正確率 < 60% 的維度，由低至高最多取3個
+  var consFiltered=[...sorted].reverse().filter(function(d){return dimScores[d.key]<60;});
+  var cons=consFiltered.map(function(d){var cm=consMap[d.key];return cm?cm[bk(dimScores[d.key])]:'—';});
 
   // Calculate total correct and total questions
   var totalCorrect = (dimCorrect.abstract||0)+(dimCorrect.visual||0)+(dimCorrect.quant||0)+(dimCorrect.critical||0);
@@ -630,15 +634,16 @@ function openReport(sheetRow){
 
     <!-- Overall pros/cons -->
     <div style="font-size:13px;font-weight:500;color:var(--ink2);margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--paper3)">總體評估</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
-      <div style="background:#f0faf4;border:1px solid #a8d5b5;border-radius:var(--radius);padding:14px">
-        <div style="font-size:13px;font-weight:700;color:#1a5c2a;margin-bottom:10px">✓ 三大優點</div>
+    <div style="display:grid;grid-template-columns:${pros.length>0&&cons.length>0?'1fr 1fr':'1fr'};gap:12px;margin-bottom:20px">
+      ${pros.length>0?`<div style="background:#f0faf4;border:1px solid #a8d5b5;border-radius:var(--radius);padding:14px">
+        <div style="font-size:13px;font-weight:700;color:#1a5c2a;margin-bottom:10px">✓ 優點</div>
         ${pros.map((p,i)=>'<div style="font-size:13px;color:var(--ink);margin-bottom:6px">'+(i+1)+'. '+p+'</div>').join('')}
-      </div>
-      <div style="background:#fef9ec;border:1px solid #e8cc7a;border-radius:var(--radius);padding:14px">
-        <div style="font-size:13px;font-weight:700;color:#7a5c00;margin-bottom:10px">⚠ 三個注意事項</div>
+      </div>`:''}
+      ${cons.length>0?`<div style="background:#fef9ec;border:1px solid #e8cc7a;border-radius:var(--radius);padding:14px">
+        <div style="font-size:13px;font-weight:700;color:#7a5c00;margin-bottom:10px">⚠ 注意事項</div>
         ${cons.map((c,i)=>'<div style="font-size:13px;color:var(--ink);margin-bottom:6px">'+(i+1)+'. '+c+'</div>').join('')}
-      </div>
+      </div>`:''}
+      ${pros.length===0&&cons.length===0?'<div style="font-size:13px;color:var(--ink2);padding:14px;text-align:center">各維度正確率介於60%附近，無特別突出或待加強之項目。</div>':''}
     </div>
 
     <div style="font-size:11px;color:#7a7570;text-align:center;padding-top:12px;border-top:1px solid #e8e5de;display:flex;align-items:center;justify-content:center;gap:6px">
