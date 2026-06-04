@@ -492,83 +492,62 @@ function openReport(sheetRow){
   if(!r){alert('找不到紀錄，請重新整理後再試');return}
   document.getElementById('report-date-sub').textContent=r.testDate||'';
 
-  // Build scores object for radar
-  var scores={};
-  DIMS.forEach(d=>{ scores[DIM_KEYS[d]]=r[DIM_KEYS[d]]||0; });
-
-  // Sort dims by score desc
-  var sortedDims=[...DIMS].sort((a,b)=>(r[DIM_KEYS[b]]||0)-(r[DIM_KEYS[a]]||0));
-
-  var scoresHtml=sortedDims.map(d=>{
-    var v=parseInt(r[DIM_KEYS[d]])||0;
-    var col=v>=80?'#1a5c2a':v>=60?'#2e7d32':v>=40?'#7a5c00':v>=20?'#c0392b':'#8b2020';
-    return `<div class="score-row">
-      <span class="lbl">${d}</span>
-      <div class="score-bar-wrap"><div class="score-bar-fill" style="width:${v}%;background:${col}"></div></div>
-      <span class="score-pct">${v}%</span>
-    </div>`;
-  }).join('');
-
-  // Dim analysis
-  var dimAnalysis=sortedDims.map(d=>{
-    var v=parseInt(r[DIM_KEYS[d]])||0;
-    var band=getBand(v);
-    var label=BAND_LABELS[band];
-    var col=DIM_COLORS[d];
-    var bg=DIM_BG[d];
-    var w=WEIGHTS[d];
-    var analysis=getDimAnalysis(d, band);
-    return `<div class="dim-card">
-      <div class="dim-card-header" style="background:${bg}">
-        <div>
-          <span class="dim-tag-report" style="background:${col};color:#fff">${d}（佔${w}%）</span>
-          <span style="font-size:13px;color:var(--ink2);margin-left:8px">${DIM_DESC[d]}</span>
-        </div>
-        <span style="font-size:18px;font-weight:700;color:${col}">${v}% <span style="font-size:13px">${label}</span></span>
-      </div>
-      <div class="dim-card-body">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-          <div>
-            <div style="font-size:12px;font-weight:600;color:#1a5c2a;margin-bottom:6px">✓ 優勢特點</div>
-            ${analysis.pros.map(p=>'<div style="font-size:13px;color:var(--ink);margin-bottom:4px">• '+p+'</div>').join('')}
-          </div>
-          <div>
-            <div style="font-size:12px;font-weight:600;color:#c0392b;margin-bottom:6px">⚠ 注意事項</div>
-            ${analysis.cons.map(c=>'<div style="font-size:13px;color:var(--ink);margin-bottom:4px">• '+c+'</div>').join('')}
-          </div>
-        </div>
-        <div style="margin-top:10px;padding:8px 12px;background:var(--paper);border-radius:6px;font-size:13px;color:var(--ink2)">
-          💡 面試重點：${analysis.tip}
-        </div>
-      </div>
-    </div>`;
-  }).join('');
-
-  // Overall weighted score interpretation
+  // ── Weighted score banner ──
   var ws=r.weightedScore||0;
   var wsLabel=ws>=85?'卓越':ws>=70?'優秀':ws>=55?'良好':ws>=40?'中等':'需加強';
   var wsColor=ws>=85?'#1a5c2a':ws>=70?'#2e7d32':ws>=55?'#7a5c00':ws>=40?'#c0392b':'#8b2020';
 
-  // Build overall pros and cons from top/bottom dims
-  var top3dims = sortedDims.slice(0,3);
-  var bot3dims = [...sortedDims].reverse().slice(0,3);
-  var prosMap = {
-    '數據推理': {h:'數字邏輯分析能力出色，能快速識別複雜規律，學習新知識的速度很快',m:'具備穩定的數字邏輯基礎，能有效處理大多數推理任務',l:'具備基本的數字判斷能力，在結構化工作中能穩定執行'},
-    '圖像推理': {h:'空間推理與圖形邏輯能力強，非語言思維突出，有利於設計與分析類工作',m:'圖形推理能力良好，能有效解讀視覺化資訊',l:'具備基本的圖形辨識能力，在有視覺化工具支援下表現穩定'},
-    '計算邏輯': {h:'商業數字分析能力卓越，能快速解讀複雜數據，是數據驅動決策的重要能力',m:'計算邏輯能力不錯，能有效處理大多數商業數字任務',l:'具備基本的計算能力，能完成日常商業數字工作'},
-    '商業邏輯': {h:'職場批判判斷能力強，能清楚識別問題本質，決策品質高',m:'商業邏輯判斷能力良好，能在大多數情境做出合理判斷',l:'具備基本的職場判斷能力，在結構化情境中能做出合理決策'},
-  };
-  var consMap = {
-    '數據推理': {h:'在需要快速行動的情境中，分析傾向可能讓決策稍慢',m:'在高複雜度推理任務上仍有提升空間',l:'複雜的數字推理任務需要更多時間和練習'},
-    '圖像推理': {h:'在需要文字型論述的工作中，可能需要刻意加強',m:'在多維度空間推理上仍有提升空間',l:'複雜的矩陣推理仍需加強，建議搭配視覺化工具'},
-    '計算邏輯': {h:'對數字精確度極高的要求可能影響效率',m:'在複雜計算情境下的準確率仍有提升空間',l:'商業計算能力需要加強，建議搭配計算工具使用'},
-    '商業邏輯': {h:'批判思考可能在協作場合顯得較為嚴苛',m:'在複雜的多方情境判斷上仍有提升空間',l:'職場邏輯判斷能力需要加強，建議多接觸實際業務情境'},
-  };
-  function getBandKey(v){ return v>=70?'h':v>=40?'m':'l'; }
-  var pros = top3dims.map(d=>{ var v=parseInt(r[DIM_KEYS[d]])||0; var pm=prosMap[d]; return pm?pm[getBandKey(v)]:'—'; });
-  var cons = bot3dims.map(d=>{ var v=parseInt(r[DIM_KEYS[d]])||0; var cm=consMap[d]; return cm?cm[getBandKey(v)]:'—'; });
+  // ── Bars (4 dims) ──
+  var dimList=[
+    {key:'abstract',  label:'數據推理', total:5,  color:'#b03a2e', bg:'#fceaea', cls:'dim-0'},
+    {key:'visual',    label:'圖像推理', total:5,  color:'#117a65', bg:'#e8f8f5', cls:'dim-1'},
+    {key:'quant',     label:'計算邏輯', total:10, color:'#1e8449', bg:'#eafaf1', cls:'dim-2'},
+    {key:'critical',  label:'商業邏輯', total:10, color:'#1a5276', bg:'#ebf5fb', cls:'dim-3'},
+  ];
 
-  document.getElementById('modal-report-body').innerHTML = `
+  // Score % for each dim (from record fields)
+  var dimScores={
+    abstract: parseInt(r.abstract||0),
+    visual:   parseInt(r.visual||0),
+    quant:    parseInt(r.quant||0),
+    critical: parseInt(r.critical||0),
+  };
+
+  // Answered correct count per dim
+  var barsHtml=dimList.map(function(d){
+    var pct=dimScores[d.key];
+    var correct=Math.round(pct/100*d.total);
+    return '<div class="score-bar-wrap">'
+      +'<div class="score-bar-label">'
+      +'<span style="font-size:14px;font-weight:500">'+d.label+' ('+d.total+'題)</span>'
+      +'<span class="score-badge '+d.cls+'">'+correct+' / '+d.total+' 題（'+pct+'%）</span>'
+      +'</div>'
+      +'<div class="score-bar-track">'
+      +'<div class="score-bar-fill" style="width:'+pct+'%;background:'+d.color+'"></div>'
+      +'</div>'
+      +'</div>';
+  }).join('');
+
+  // ── Overall pros/cons ──
+  var sorted=[...dimList].sort((a,b)=>dimScores[b.key]-dimScores[a.key]);
+  var prosMap={
+    abstract:{h:'數字邏輯分析能力出色，能快速識別複雜規律，學習新知識的速度很快',m:'具備穩定的數字邏輯基礎，能有效處理大多數推理任務',l:'具備基本的數字判斷能力，在結構化工作中能穩定執行'},
+    visual:  {h:'空間推理與圖形邏輯能力強，非語言思維突出，有利於設計與分析類工作',m:'圖形推理能力良好，能有效解讀視覺化資訊',l:'具備基本的圖形辨識能力，在有視覺化工具支援下表現穩定'},
+    quant:   {h:'商業數字分析能力卓越，能快速解讀複雜數據，是數據驅動決策的重要能力',m:'計算邏輯能力不錯，能有效處理大多數商業數字任務',l:'具備基本的計算能力，能完成日常商業數字工作'},
+    critical:{h:'職場批判判斷能力強，能清楚識別問題本質，決策品質高',m:'商業邏輯判斷能力良好，能在大多數情境做出合理判斷',l:'具備基本的職場判斷能力，在結構化情境中能做出合理決策'},
+  };
+  var consMap={
+    abstract:{h:'在需要快速行動的情境中，分析傾向可能讓決策稍慢',m:'在高複雜度推理任務上仍有提升空間',l:'複雜的數字推理任務需要更多時間和練習'},
+    visual:  {h:'在需要文字型論述的工作中，可能需要刻意加強',m:'在多維度空間推理上仍有提升空間',l:'複雜的矩陣推理仍需加強，建議搭配視覺化工具'},
+    quant:   {h:'對數字精確度極高的要求可能影響效率',m:'在複雜計算情境下的準確率仍有提升空間',l:'商業計算能力需要加強，建議搭配計算工具使用'},
+    critical:{h:'批判思考可能在協作場合顯得較為嚴苛',m:'在複雜的多方情境判斷上仍有提升空間',l:'職場邏輯判斷能力需要加強，建議多接觸實際業務情境'},
+  };
+  function bk(v){return v>=70?'h':v>=40?'m':'l';}
+  var pros=sorted.slice(0,3).map(function(d){var pm=prosMap[d.key];return pm?pm[bk(dimScores[d.key])]:'—';});
+  var cons=[...sorted].reverse().slice(0,3).map(function(d){var cm=consMap[d.key];return cm?cm[bk(dimScores[d.key])]:'—';});
+
+  document.getElementById('modal-report-body').innerHTML=`
+    <!-- Basic info -->
     <div style="background:#fff;border:1px solid var(--paper3);border-radius:var(--radius);padding:16px;margin-bottom:16px">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:14px">
         <div><div style="font-size:11px;color:var(--ink2)">姓名</div><div style="font-size:16px;font-weight:600">${r.name}</div></div>
@@ -580,40 +559,43 @@ function openReport(sheetRow){
       </div>
     </div>
 
-    <div style="background:${wsColor};border-radius:var(--radius);padding:16px 20px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center">
+    <!-- Total score banner -->
+    <div style="background:${wsColor};border-radius:var(--radius);padding:18px 24px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center">
       <div>
-        <div style="color:rgba(255,255,255,.8);font-size:13px">加權邏輯能力總分</div>
-        <div style="color:#fff;font-size:13px;margin-top:4px">最強維度：<strong>${r.mainDim||'—'}</strong></div>
+        <div style="color:rgba(255,255,255,.75);font-size:13px;font-weight:500">邏輯能力加權總分</div>
+        <div style="color:#fff;font-size:14px;margin-top:6px">最強維度：<strong>${r.mainDim||'—'}</strong></div>
+        <div style="color:rgba(255,255,255,.75);font-size:13px;margin-top:2px">作答率 ${r.answerRate||'—'}</div>
       </div>
-      <div style="color:#fff;font-size:36px;font-weight:700">${ws} <span style="font-size:16px">${wsLabel}</span></div>
+      <div style="text-align:right">
+        <span style="color:#fff;font-size:42px;font-weight:700">${ws}</span>
+        <span style="color:rgba(255,255,255,.85);font-size:18px;margin-left:6px">/ 100</span>
+        <div style="color:rgba(255,255,255,.85);font-size:16px;margin-top:4px">${wsLabel}</div>
+      </div>
     </div>
 
-    <div class="report-section-title">四維度邏輯雷達圖</div>
-    <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:16px">
-      <div style="flex-shrink:0">${buildRadarSVG(scores)}</div>
-      <div style="flex:1;padding-top:8px">${scoresHtml}</div>
-    </div>
+    <!-- Dim score bars -->
+    <div style="font-size:12px;font-weight:500;color:#7a7570;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;padding-bottom:5px;border-bottom:1px solid #e8e5de">各維度得分明細</div>
+    <div style="margin-bottom:16px">${barsHtml}</div>
 
-    <div class="report-section-title">總體評估</div>
+    <!-- Overall pros/cons -->
+    <div style="font-size:12px;font-weight:500;color:#7a7570;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;padding-bottom:5px;border-bottom:1px solid #e8e5de">總體評估</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
-      <div style="background:#f0faf4;border:1px solid #a8d5b5;border-radius:var(--radius);padding:16px">
+      <div style="background:#f0faf4;border:1px solid #a8d5b5;border-radius:var(--radius);padding:14px">
         <div style="font-size:13px;font-weight:700;color:#1a5c2a;margin-bottom:10px">✓ 三大優點</div>
         ${pros.map((p,i)=>'<div style="font-size:13px;color:var(--ink);margin-bottom:6px">'+(i+1)+'. '+p+'</div>').join('')}
       </div>
-      <div style="background:#fef9ec;border:1px solid #e8cc7a;border-radius:var(--radius);padding:16px">
+      <div style="background:#fef9ec;border:1px solid #e8cc7a;border-radius:var(--radius);padding:14px">
         <div style="font-size:13px;font-weight:700;color:#7a5c00;margin-bottom:10px">⚠ 三個注意事項</div>
         ${cons.map((c,i)=>'<div style="font-size:13px;color:var(--ink);margin-bottom:6px">'+(i+1)+'. '+c+'</div>').join('')}
       </div>
     </div>
 
-    <div style="text-align:center;font-size:12px;color:var(--ink3);margin-top:20px;padding-top:12px;border-top:1px solid var(--paper3)">
+    <div style="font-size:11px;color:#7a7570;text-align:center;padding-top:12px;border-top:1px solid #e8e5de">
       機密文件 — 僅供人資部門使用 · 17Life P@YEASY 邏輯能力測驗管理系統
     </div>`;
 
   document.getElementById('modal-report').classList.add('open');
 }
-
-// ── Dimension Analysis Data ──
 function getDimAnalysis(dim, band) {
   var data = {
     '數據推理': [
