@@ -561,12 +561,14 @@ function endTest() {
     answerRate: Math.round((answered/30)*100)+'%',
     answered:  answered,
     total:     30,
-    abstract:  scores['數據推理']  ? scores['數據推理'].pct  : 0,
-    visual:    scores['圖像推理']  ? scores['圖像推理'].pct  : 0,
-    quant:     scores['計算邏輯']  ? scores['計算邏輯'].pct  : 0,
-    critical:  scores['商業邏輯']  ? scores['商業邏輯'].pct  : 0,
-    system:    0,
-    learn:     0
+    abstract:  scores['數據推理']  ? scores['數據推理'].correct  : 0,
+    visual:    scores['圖像推理']  ? scores['圖像推理'].correct  : 0,
+    quant:     scores['計算邏輯']  ? scores['計算邏輯'].correct  : 0,
+    critical:  scores['商業邏輯']  ? scores['商業邏輯'].correct  : 0,
+    abstractTotal:  scores['數據推理']  ? scores['數據推理'].total  : 5,
+    visualTotal:    scores['圖像推理']  ? scores['圖像推理'].total  : 5,
+    quantTotal:     scores['計算邏輯']  ? scores['計算邏輯'].total  : 10,
+    criticalTotal:  scores['商業邏輯']  ? scores['商業邏輯'].total  : 10
   };
 
   document.getElementById('page-quiz').classList.add('hidden');

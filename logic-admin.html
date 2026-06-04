@@ -506,24 +506,34 @@ function openReport(sheetRow){
   ];
 
   // Score % for each dim (from record fields)
-  var dimScores={
+  // Scores are stored as correct count per dim
+  var dimCorrect={
     abstract: parseInt(r.abstract||0),
     visual:   parseInt(r.visual||0),
     quant:    parseInt(r.quant||0),
     critical: parseInt(r.critical||0),
   };
+  // Convert correct count → percentage for pros/cons logic
+  var dimTotals={abstract:5, visual:5, quant:10, critical:10};
+  var dimScores={
+    abstract: dimTotals.abstract>0 ? Math.round(dimCorrect.abstract/dimTotals.abstract*100) : 0,
+    visual:   dimTotals.visual>0   ? Math.round(dimCorrect.visual/dimTotals.visual*100)     : 0,
+    quant:    dimTotals.quant>0    ? Math.round(dimCorrect.quant/dimTotals.quant*100)       : 0,
+    critical: dimTotals.critical>0 ? Math.round(dimCorrect.critical/dimTotals.critical*100) : 0,
+  };
 
   // Answered correct count per dim
   var barsHtml=dimList.map(function(d){
-    var pct=dimScores[d.key];
-    var correct=Math.round(pct/100*d.total);
-    return '<div class="score-bar-wrap">'
-      +'<div class="score-bar-label">'
-      +'<span style="font-size:14px;font-weight:500">'+d.label+' ('+d.total+'題)</span>'
-      +'<span class="score-badge '+d.cls+'">'+correct+' / '+d.total+' 題（'+pct+'%）</span>'
+    var correct=dimCorrect[d.key]||0;
+    var total=d.total;
+    var pct=total>0?Math.round(correct/total*100):0;
+    return '<div class="score-bar-wrap" style="margin-bottom:16px">'
+      +'<div class="score-bar-label" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
+      +'<span style="font-size:14px;font-weight:500">'+d.label+' ('+total+'題)</span>'
+      +'<span class="score-badge '+d.cls+'" style="font-size:13px;font-weight:600;padding:4px 14px;border-radius:16px;background:'+d.bg+';color:'+d.color+'">'+correct+' / '+total+' 題</span>'
       +'</div>'
-      +'<div class="score-bar-track">'
-      +'<div class="score-bar-fill" style="width:'+pct+'%;background:'+d.color+'"></div>'
+      +'<div class="score-bar-track" style="height:12px;background:#e8e5de;border-radius:6px;overflow:hidden">'
+      +'<div style="width:'+pct+'%;height:100%;background:'+d.color+';border-radius:6px;transition:width .4s"></div>'
       +'</div>'
       +'</div>';
   }).join('');
