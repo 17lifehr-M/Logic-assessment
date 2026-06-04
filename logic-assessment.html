@@ -4,128 +4,215 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>17Life P@YEASY 邏輯能力測驗</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=DM+Serif+Display:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-:root{
-  --green:#2d5a3d;--green-light:#e8f5ed;--paper:#f8f6f1;--paper2:#f2f0eb;--paper3:#e8e5de;
-  --ink:#3d3a34;--ink2:#7a7570;--ink3:#b0acaa;--radius:12px;--radius-lg:16px;
+:root {
+  --ink: #1a1814;
+  --ink2: #3d3a34;
+  --ink3: #7a7570;
+  --paper: #faf9f6;
+  --paper2: #f2f0eb;
+  --paper3: #e8e5de;
+  --accent: #2d5a3d;
+  --accent2: #4a7c5f;
+  --accent-light: #e8f0eb;
+  --danger: #8b2020;
+  --warning: #7a5c00;
+  --gold: #c9a227;
+  --radius: 4px;
+  --radius-lg: 8px;
 }
+
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Noto Sans TC','PingFang TC','Microsoft JhengHei',sans-serif;background:var(--paper);color:var(--ink);min-height:100vh}
-.topbar{position:fixed;top:0;left:0;right:0;height:56px;background:#fff;border-bottom:1px solid var(--paper3);display:flex;align-items:center;justify-content:space-between;padding:0 20px;z-index:100}
-.logo{height:28px}
-.timer-box{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--ink2)}
-.timer-val{font-size:18px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
-.progress-bar{height:3px;background:var(--paper3);position:fixed;top:56px;left:0;right:0;z-index:99}
-.progress-fill{height:100%;background:var(--green);transition:width .3s}
-.page{padding-top:76px;padding-bottom:40px;max-width:720px;margin:0 auto;padding-left:20px;padding-right:20px}
+html{font-size:16px}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--paper);color:var(--ink);min-height:100vh}
 
-/* ─ Intro ─ */
-.intro-card{background:#fff;border-radius:var(--radius-lg);padding:32px;margin-bottom:20px;border:1px solid var(--paper3)}
-.intro-title{font-size:22px;font-weight:700;color:var(--green);margin-bottom:8px}
-.intro-sub{font-size:14px;color:var(--ink2);margin-bottom:24px}
-.dim-table{width:100%;border-collapse:collapse;font-size:13px}
-.dim-table th{background:var(--green);color:#fff;padding:8px 12px;text-align:left}
-.dim-table td{padding:8px 12px;border-bottom:1px solid var(--paper3)}
-.dim-table tr:last-child td{border-bottom:none}
-.dim-table tr:nth-child(even) td{background:var(--paper)}
-.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px}
-.info-item{background:var(--paper);border-radius:var(--radius);padding:14px 16px;border:1px solid var(--paper3)}
-.info-item label{font-size:12px;color:var(--ink2);display:block;margin-bottom:4px}
-.info-item input{width:100%;border:none;background:transparent;font-size:15px;color:var(--ink);font-family:inherit;outline:none}
-input[type=date]{color-scheme:light}
-.btn-start{width:100%;padding:16px;background:var(--green);color:#fff;border:none;border-radius:var(--radius);font-size:16px;font-weight:600;cursor:pointer;margin-top:8px;transition:opacity .2s}
-.btn-start:hover{opacity:.9}
-.btn-start:disabled{opacity:.5;cursor:default}
+/* ── GLOBAL ── */
+.page{display:none;min-height:100vh}
+.page.active{display:flex;flex-direction:column}
+.serif{font-family:'DM Serif Display',serif}
+.mono{font-family:'JetBrains Mono',monospace}
 
-/* ─ Quiz ─ */
-.qn-hdr{text-align:center;font-size:13px;color:var(--ink2);margin-bottom:4px}
-.dim-tag{display:inline-block;font-size:12px;font-weight:600;padding:3px 12px;border-radius:20px;margin-bottom:16px}
-.q-text{font-size:18px;font-weight:500;line-height:1.6;background:#fff;border-radius:var(--radius-lg);padding:24px;border:1px solid var(--paper3);margin-bottom:16px}
-.options{display:flex;flex-direction:column;gap:10px;margin-bottom:20px}
-.opt-btn{background:#fff;border:2px solid var(--paper3);border-radius:var(--radius);padding:14px 18px;text-align:left;font-size:15px;color:var(--ink);cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:12px}
-.opt-btn:hover{border-color:var(--green);background:var(--green-light)}
-.opt-visual{padding:10px 14px;}
-.opt-btn.selected{border-color:var(--green);background:var(--green-light)}
-.opt-letter{width:28px;height:28px;border-radius:50%;background:var(--paper2);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0}
-.opt-btn.selected .opt-letter{background:var(--green);color:#fff}
-.q-arc{position:relative;width:52px;height:52px}
-.q-arc svg{transform:rotate(-90deg)}
+input,select,textarea{font-family:'Noto Sans TC',sans-serif;font-size:15px;color:var(--ink);background:var(--paper);border:1px solid var(--paper3);border-radius:var(--radius);padding:10px 14px;width:100%;outline:none;transition:border-color .2s,box-shadow .2s}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(45,90,61,.1)}
+label{font-size:13px;font-weight:500;color:var(--ink2);display:block;margin-bottom:5px}
+button{font-family:'Noto Sans TC',sans-serif;cursor:pointer;border:none;border-radius:var(--radius);font-size:14px;font-weight:500;transition:all .15s}
 
-/* ─ Done ─ */
-.done-card{background:#fff;border-radius:var(--radius-lg);padding:32px;text-align:center;border:1px solid var(--paper3)}
-.done-icon{font-size:48px;margin-bottom:16px}
-.done-title{font-size:22px;font-weight:700;color:var(--green);margin-bottom:8px}
-.done-sub{font-size:14px;color:var(--ink2);line-height:1.7}
+.btn-primary{background:var(--accent);color:#fff;padding:11px 24px}
+.btn-primary:hover{background:var(--accent2)}
+.btn-secondary{background:transparent;color:var(--ink2);border:1px solid var(--paper3);padding:10px 20px}
+.btn-secondary:hover{background:var(--paper2);border-color:var(--ink3)}
+
+.card{background:#fff;border:1px solid var(--paper3);border-radius:var(--radius-lg);padding:24px}
+.tag{display:inline-block;font-size:12px;font-weight:500;padding:3px 10px;border-radius:20px}
+
+/* ── APPLICANT TEST (Intro) ── */
+#pg-test{background:var(--paper);align-items:center;justify-content:center;padding:40px 20px}
+
+.test-wrap{width:100%;max-width:660px}
+
+.test-header{text-align:center;margin-bottom:40px}
+.test-header .serif{font-size:36px;color:var(--ink);line-height:1.2;margin-bottom:8px}
+.test-header p{font-size:15px;color:var(--ink3);line-height:1.7}
+
+.intro-card{background:#fff;border:1px solid var(--paper3);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:24px}
+.intro-card-top{background:var(--accent);padding:20px 24px;display:flex;align-items:center;gap:14px}
+.intro-card-top .icon-circle{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:20px}
+.intro-card-top h2{color:#fff;font-size:17px;font-weight:500}
+.intro-card-top p{color:rgba(255,255,255,.8);font-size:13px}
+.intro-card-body{padding:20px 24px}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.info-item{background:var(--paper2);border-radius:var(--radius);padding:12px 16px;display:flex;align-items:center;gap:10px}
+.info-item .ii-icon{font-size:20px}
+.info-item p{font-size:13px;color:var(--ink3);margin-bottom:2px}
+.info-item strong{font-size:15px;color:var(--ink)}
+.notice-box{background:var(--accent-light);border-left:3px solid var(--accent);border-radius:0 var(--radius) var(--radius) 0;padding:12px 16px;font-size:14px;color:var(--ink2);line-height:1.7}
+
+.form-card{background:#fff;border:1px solid var(--paper3);border-radius:var(--radius-lg);padding:24px;margin-bottom:24px}
+.form-card h3{font-size:16px;font-weight:500;margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.form-card h3::before{content:'';display:inline-block;width:3px;height:16px;background:var(--accent);border-radius:2px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-group{margin-bottom:14px}
+
+/* QUIZ */
+#pg-quiz{background:var(--paper);align-items:stretch}
+.quiz-wrap{flex:1;display:flex;flex-direction:column;max-width:680px;margin:0 auto;width:100%;padding:20px}
+
+.quiz-topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 0;margin-bottom:8px;border-bottom:1px solid var(--paper3)}
+.quiz-topbar .qnum{font-size:13px;color:var(--ink3)}
+.quiz-topbar .qnum strong{color:var(--ink);font-size:15px}
+.total-time-wrap{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink3)}
+.total-time-wrap .time-val{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:500;color:var(--ink);background:var(--paper2);padding:3px 10px;border-radius:20px}
+.time-val.warn{color:var(--danger);background:#fceaea}
+
+.progress-track{height:3px;background:var(--paper3);border-radius:2px;margin-bottom:20px;overflow:hidden}
+.progress-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .4s ease}
+
+.q-meta{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.q-cat-badge{font-size:12px;font-weight:500;color:var(--accent);background:var(--accent-light);padding:4px 12px;border-radius:20px}
+
+.q-card{background:#fff;border:1px solid var(--paper3);border-radius:var(--radius-lg);padding:22px 24px;margin-bottom:16px;min-height:90px}
+.q-card p{font-size:17px;line-height:1.65;color:var(--ink)}
+
+.opt-btn{width:100%;text-align:left;background:#fff;border:1px solid var(--paper3);border-radius:var(--radius);padding:13px 16px;margin-bottom:8px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all .15s;color:var(--ink);font-size:15px;line-height:1.5}
+.opt-btn:hover{border-color:var(--accent2);background:var(--accent-light)}
+.opt-btn.selected{border-color:var(--accent);background:var(--accent-light);color:var(--accent)}
+.opt-btn.selected .opt-ltr{background:var(--accent);color:#fff;border-color:var(--accent)}
+.opt-ltr{min-width:28px;height:28px;border-radius:50%;border:1.5px solid var(--paper3);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;transition:all .15s;flex-shrink:0}
+.opt-visual{padding:10px 14px}
+
+.quiz-footer{margin-top:auto;padding-top:16px;border-top:1px solid var(--paper3)}
+#btn-confirm{width:100%;padding:14px;font-size:15px;background:var(--accent);color:#fff;border-radius:var(--radius);border:none;cursor:pointer;font-weight:500;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:8px}
+#btn-confirm:hover:not(:disabled){background:var(--accent2)}
+#btn-confirm:disabled{background:var(--paper3);color:var(--ink3);cursor:not-allowed}
+
+/* DONE */
+#pg-done{align-items:center;justify-content:center;padding:40px 20px;min-height:100vh}
+.done-box{max-width:500px;width:100%;text-align:center}
+.done-icon{width:80px;height:80px;border-radius:50%;background:var(--accent-light);display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 20px}
+.done-box h2{font-family:'DM Serif Display',serif;font-size:28px;margin-bottom:10px}
+.done-box p{color:var(--ink3);font-size:15px;line-height:1.7;margin-bottom:24px}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--ink);color:#fff;padding:12px 18px;border-radius:var(--radius-lg);font-size:14px;z-index:9999;opacity:0;transform:translateY(10px);transition:all .3s;pointer-events:none}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast.success{background:var(--accent)}
+.toast.error{background:var(--danger)}
 
 .hidden{display:none}
 </style>
 </head>
 <body>
 
-<div class="topbar">
-  <img class="logo" src="https://17lifehr-m.github.io/talent-assessment/17life-logo.png" onerror="this.style.display='none'" alt="17Life P@YEASY">
-  <div style="font-weight:700;color:var(--green);font-size:15px">邏輯能力測驗</div>
-  <div class="timer-box" id="timer-box" style="display:none">
-    ⏳ 剩餘時間
-    <span class="timer-val" id="timer-display">20:00</span>
+<div class="toast" id="toast"></div>
+
+<!-- ═══════════════════════════════════════════
+     PAGE 1: INTRO
+═══════════════════════════════════════════ -->
+<div class="page active" id="pg-test">
+  <div class="test-wrap">
+    <div class="test-header">
+      <div style="margin-bottom:16px">
+        <img src="https://17lifehr-m.github.io/talent-assessment/17life-logo.png" onerror="this.style.display='none'" alt="17Life P@YEASY" style="height:56px;object-fit:contain;display:block;margin:0 auto;mix-blend-mode:multiply">
+      </div>
+      <div class="serif">邏輯能力測驗</div>
+      <p>整合數據推理、圖像推理、計算邏輯與商業邏輯<br>協助企業全面評估您的邏輯思維與分析能力</p>
+    </div>
+
+    <div class="intro-card">
+      <div class="intro-card-top">
+        <div class="icon-circle">📋</div>
+        <div>
+          <h2>測驗說明</h2>
+          <p>請在安靜環境中獨立完成，題目無固定順序</p>
+        </div>
+      </div>
+      <div class="intro-card-body">
+        <div class="info-grid">
+          <div class="info-item"><span class="ii-icon">📝</span><div><p>題目數量</p><strong>30 道題目</strong></div></div>
+          <div class="info-item"><span class="ii-icon">⏳</span><div><p>總時限</p><strong>20 分鐘</strong></div></div>
+          <div class="info-item"><span class="ii-icon">🔍</span><div><p>測驗維度</p><strong>4 個維度</strong></div></div>
+          <div class="info-item"><span class="ii-icon">📊</span><div><p>每題限時</p><strong>不限時間</strong></div></div>
+        </div>
+        <div class="notice-box">
+          <strong>作答須知：</strong>共 30 題，每題不限時間，總時限 20 分鐘。題目基於全球前500大企業邏輯測驗設計。請在安靜獨立的環境中作答，測驗完成後自動提交。
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card">
+      <h3>基本資料</h3>
+      <div class="form-row">
+        <div class="form-group"><label>姓名 <span style="color:var(--danger)">*</span></label><input type="text" id="inp-name" placeholder="請輸入您的姓名"></div>
+        <div class="form-group"><label>聯絡電話 <span style="color:var(--danger)">*</span></label><input type="tel" id="inp-phone" placeholder="例：0912-345-678"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>應徵職務 <span style="color:var(--danger)">*</span></label><input type="text" id="inp-job" placeholder="請輸入應徵職務名稱"></div>
+        <div class="form-group"><label>面試日期 <span style="color:var(--danger)">*</span></label><input type="date" id="inp-date"></div>
+      </div>
+    </div>
+
+    <button class="btn-primary" id="btn-start" style="width:100%;padding:15px;font-size:16px" onclick="startQuiz()" disabled>開始測驗 →</button>
+    <p style="text-align:center;font-size:12px;color:var(--ink3);margin-top:12px">測驗開始後無法暫停，請確認準備就緒</p>
   </div>
 </div>
-<div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
 
-<div class="page">
+<!-- ═══════════════════════════════════════════
+     PAGE 2: QUIZ
+═══════════════════════════════════════════ -->
+<div class="page" id="pg-quiz">
+  <div class="quiz-wrap">
+    <div class="quiz-topbar">
+      <span class="qnum">題目 <strong id="qn-cur">1</strong> / <strong>30</strong></span>
+      <div class="total-time-wrap">⏳ 剩餘時間 <span class="time-val" id="timer-display">20:00</span></div>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
 
-<!-- ── INTRO ── -->
-<div id="page-intro">
-  <div class="intro-card">
-    <div class="intro-title">📊 邏輯能力測驗</div>
-    <div class="intro-sub">Logic Ability Assessment · 全球頂尖企業核心測驗</div>
-    <div class="info-grid">
-      <div class="info-item"><label>姓名 *</label><input id="inp-name" placeholder="請輸入姓名"></div>
-      <div class="info-item"><label>聯絡電話 *</label><input id="inp-phone" type="tel" placeholder="請輸入電話"></div>
-      <div class="info-item"><label>應徵職務 *</label><input id="inp-job" placeholder="請輸入應徵職務"></div>
-      <div class="info-item"><label>面試日期 *</label><input id="inp-date" type="date"></div>
+    <div class="q-meta">
+      <span class="q-cat-badge" id="dim-tag" style="display:none">—</span>
+    </div>
+
+    <div class="q-card"><p id="q-text">載入題目中…</p></div>
+    <div id="options"></div>
+
+    <div class="quiz-footer">
+      <button id="btn-confirm" disabled onclick="confirmAns()">確認作答 →</button>
     </div>
   </div>
-  <div class="intro-card">
-    <div style="font-size:14px;font-weight:600;color:var(--ink);margin-bottom:12px">📋 測驗說明</div>
-    <table class="dim-table">
-      <tr><th>測驗維度</th><th>題數</th><th>評估方向</th></tr>
-      <tr><td>🔴 數據推理</td><td>5題</td><td>數字規律與邏輯推演</td></tr>
-      <tr><td>🟩 圖像推理</td><td>5題</td><td>圖形矩陣空間邏輯</td></tr>
-      <tr><td>🟢 計算邏輯</td><td>10題</td><td>商業數字分析判斷</td></tr>
-      <tr><td>🔵 商業邏輯</td><td>10題</td><td>職場情境批判判斷</td></tr>
-    </table>
-    <div style="margin-top:16px;font-size:13px;color:var(--ink2);line-height:1.8">
-      📌 共 <strong>30 題</strong>，每題<strong>不限時間</strong>，總時限 <strong>20 分鐘</strong><br>
-      📌 每個維度由50題題庫中隨機抽取5題<br>
-      📌 題目基於全球前500大企業邏輯測驗設計<br>
-      📌 請在安靜獨立的環境中作答，測驗完成後自動提交
-    </div>
-    <button class="btn-start" id="btn-start" onclick="startQuiz()" disabled>✦ 開始測驗</button>
-  </div>
 </div>
 
-<!-- ── QUIZ ── -->
-<div id="page-quiz" class="hidden">
-  <div class="qn-hdr">題目 <span id="qn-cur">1</span> / 30</div>
-  <div style="text-align:center;margin-bottom:12px">
-    <span class="dim-tag" id="dim-tag" style="display:none">—</span>
-  </div>
-  <div class="q-text" id="q-text">—</div>
-  <div class="options" id="options"></div>
-  <button class="btn-start" id="btn-confirm" onclick="confirmAns()" disabled>確認作答</button>
-</div>
-
-<!-- ── DONE ── -->
-<div id="page-done" class="hidden">
-  <div class="done-card">
+<!-- ═══════════════════════════════════════════
+     PAGE 3: DONE
+═══════════════════════════════════════════ -->
+<div class="page" id="pg-done">
+  <div class="done-box">
     <div class="done-icon">✅</div>
-    <div class="done-title">測驗完成，感謝您！</div>
-    <div class="done-sub">您的邏輯能力測驗已完成並提交<br>請靜候 HR 人員的面試通知</div>
+    <h2>測驗完成，感謝您！</h2>
+    <p>您的邏輯能力測驗已完成並提交<br>請靜候 HR 人員的面試通知</p>
   </div>
 </div>
-
-</div><!-- .page -->
 
 <script>
 // ══════════════════════════════════════════════════════════════════
@@ -392,7 +479,8 @@ var state = null;
 ['inp-name','inp-phone','inp-job','inp-date'].forEach(function(id) {
   document.getElementById(id).addEventListener('input', function() {
     var ok = ['inp-name','inp-phone','inp-job','inp-date'].every(function(i) {
-      return document.getElementById(i).value.trim() !== '';
+      var el = document.getElementById(i);
+      return el && el.value.trim() !== '';
     });
     document.getElementById('btn-start').disabled = !ok;
   });
@@ -426,9 +514,8 @@ function startQuiz() {
     qSec:      60
   };
 
-  document.getElementById('page-intro').classList.add('hidden');
-  document.getElementById('page-quiz').classList.remove('hidden');
-  document.getElementById('timer-box').style.display = 'flex';
+  document.getElementById('pg-test').classList.remove('active');
+  document.getElementById('pg-quiz').classList.add('active');
 
   startTotalTimer();
   renderQ();
@@ -454,29 +541,24 @@ function renderQ() {
 
   var q       = state.questions[state.qIdx];
   var letters = ['A','B','C','D'];
-  var col     = DIM_COLORS[q.c] || '#2d5a3d';
-  var bg      = DIM_BG[q.c]    || '#e8f5ed';
 
   document.getElementById('qn-cur').textContent = state.qIdx + 1;
   document.getElementById('progress-fill').style.width = ((state.qIdx/30)*100)+'%';
 
   var tag = document.getElementById('dim-tag');
   tag.textContent = q.c;
-  tag.style.background = bg;
-  tag.style.color = col;
-  tag.style.display = 'none'; // hidden per requirement
+  tag.style.display = 'inline-block';
 
   document.getElementById('q-text').textContent = q.q;
 
   if (q.visual) {
-    // Visual question - render SVG
     var vq = q.visual;
     var cellSz = 72;
     var mainSvg = vq.type === 'matrix3x3'
       ? renderVisualMatrix(vq.cells, cellSz)
       : renderVisualSequence(vq.cells, cellSz);
     document.getElementById('q-text').innerHTML =
-      '<div style="font-size:15px;color:#7a7570;margin-bottom:12px">請觀察下方圖形的規律，選出「?」的正確答案：</div>'
+      '<div style="font-size:15px;color:var(--ink3);margin-bottom:12px">請觀察下方圖形的規律，選出「?」的正確答案：</div>'
       + '<div style="display:flex;justify-content:center;margin-bottom:8px">' + mainSvg + '</div>';
 
     var opts = '';
@@ -484,7 +566,7 @@ function renderQ() {
     vq.options.forEach(function(opt, i) {
       var optSvg = renderOptionSvg(opt, optSz);
       opts += '<button class="opt-btn opt-visual" onclick="selectOpt('+i+')" id="opt-'+i+'" style="display:flex;align-items:center;gap:12px">'
-            + '<span class="opt-letter">'+letters[i]+'</span>'
+            + '<span class="opt-ltr">'+letters[i]+'</span>'
             + '<div>' + optSvg + '</div></button>';
     });
     document.getElementById('options').innerHTML = opts;
@@ -492,19 +574,18 @@ function renderQ() {
     var opts = '';
     q.opts.forEach(function(o, i) {
       opts += '<button class="opt-btn" onclick="selectOpt('+i+')" id="opt-'+i+'">'
-            + '<span class="opt-letter">'+letters[i]+'</span>'
+            + '<span class="opt-ltr">'+letters[i]+'</span>'
             + o + '</button>';
     });
     document.getElementById('options').innerHTML = opts;
   }
-
-  // Per-question timer disabled
 }
 
 function selectOpt(i) {
   state.selected = i;
   ['opt-0','opt-1','opt-2','opt-3'].forEach(function(id) {
-    document.getElementById(id).classList.remove('selected');
+    var el = document.getElementById(id);
+    if (el) el.classList.remove('selected');
   });
   document.getElementById('opt-'+i).classList.add('selected');
   document.getElementById('btn-confirm').disabled = false;
@@ -571,9 +652,8 @@ function endTest() {
     criticalTotal:  scores['商業邏輯']  ? scores['商業邏輯'].total  : 10
   };
 
-  document.getElementById('page-quiz').classList.add('hidden');
-  document.getElementById('page-done').classList.remove('hidden');
-  document.getElementById('timer-box').style.display = 'none';
+  document.getElementById('pg-quiz').classList.remove('active');
+  document.getElementById('pg-done').classList.add('active');
   document.getElementById('progress-fill').style.width = '100%';
 
   pushResult(result);
