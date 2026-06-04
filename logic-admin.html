@@ -112,15 +112,25 @@ tbody tr:hover{background:var(--paper)}
 
 /* ── Print styles ── */
 @media print {
-  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; box-sizing: border-box !important; }
   @page { size: A4 portrait; margin: 12mm 14mm; }
 
-  /* Hide everything */
+  /* Hide everything except print area */
+  body { margin: 0 !important; padding: 0 !important; background: #fff !important; display: block !important; }
   body > * { display: none !important; }
 
   /* Show only the print area */
-  #print-report-area { display: block !important; }
-  #print-report-area * { visibility: visible !important; }
+  #print-report-area {
+    display: block !important;
+    visibility: visible !important;
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+  }
+  #print-report-area * { visibility: visible !important; max-width: 100% !important; }
 }
 #print-report-area { display: none; }
 
@@ -776,7 +786,7 @@ async function testConn(){try{var r=await api({action:'login',acc:'__ping__',pw:
 function printReport(){
   var body = document.getElementById('modal-report-body');
   var printArea = document.getElementById('print-report-area');
-  printArea.innerHTML = `<div style="font-family:'Noto Sans TC','PingFang TC','Microsoft JhengHei',sans-serif;color:#3d3a34;padding:8px 0">` + body.innerHTML + `</div>`;
+  printArea.innerHTML = `<div style="font-family:'Noto Sans TC','PingFang TC','Microsoft JhengHei',sans-serif;color:#3d3a34;width:100%;max-width:100%;padding:0;margin:0">` + body.innerHTML + `</div>`;
   window.print();
 }
 function downloadPDF(){
