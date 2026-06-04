@@ -113,14 +113,15 @@ tbody tr:hover{background:var(--paper)}
 /* ── Print styles ── */
 @media print {
   * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-  body { background: #fff !important; display: block !important; margin: 0 !important; padding: 0 !important; }
-  .sidebar, .modal-overlay, .modal-header, .modal-footer, #page-login, .page-title, .page-sub, .stat-grid, .table-wrap, .tab-content { display: none !important; }
-  .main { margin: 0 !important; padding: 0 !important; max-width: 100% !important; }
-  #print-report-area { display: block !important; padding: 20px 28px !important; }
+  @page { size: A4 portrait; margin: 12mm 14mm; }
+
+  /* Hide everything */
+  body > * { display: none !important; }
+
+  /* Show only the print area */
+  #print-report-area { display: block !important; }
   #print-report-area * { visibility: visible !important; }
-  @page { size: A4 portrait; margin: 10mm 14mm; }
 }
-/* Hidden print area (visible only when printing) */
 #print-report-area { display: none; }
 
 /* admin settings */
@@ -768,22 +769,9 @@ function closeModal(id){document.getElementById(id).classList.remove('open');}
 async function testConn(){try{var r=await api({action:'login',acc:'__ping__',pw:'__ping__'});alert('連線正常！');}catch(e){if(e.message==='Invalid credentials')alert('連線正常！');else alert('連線失敗：'+e.message);}}
 function printReport(){
   var body = document.getElementById('modal-report-body');
-  var w = window.open('', '_blank', 'width=900,height=1200');
-  w.document.write(`<!DOCTYPE html>
-<html lang="zh-TW"><head>
-<meta charset="UTF-8">
-<title>邏輯能力測驗報告</title>
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-  body { font-family: 'Noto Sans TC','PingFang TC','Microsoft JhengHei',sans-serif; background: #fff; color: #3d3a34; padding: 28px 32px; }
-  @page { size: A4 portrait; margin: 12mm 14mm; }
-  @media print { body { padding: 0; } }
-</style>
-</head><body>
-${body.innerHTML}
-<script>window.onload=function(){window.print();window.onafterprint=function(){window.close();};<\/script>
-</body></html>`);
-  w.document.close();
+  var printArea = document.getElementById('print-report-area');
+  printArea.innerHTML = `<div style="font-family:'Noto Sans TC','PingFang TC','Microsoft JhengHei',sans-serif;color:#3d3a34;padding:8px 0">` + body.innerHTML + `</div>`;
+  window.print();
 }
 function downloadPDF(){
   var el=document.getElementById('modal-report-body');
