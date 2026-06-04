@@ -360,7 +360,7 @@ function updateSortHeaders(){
 }
 
 // ── API ──
-var currentAdmin=null, allRecords=[], allAdmins=[];
+var currentAdmin=null, allRecords=[], allAdmins=[], currentReportRecord=null;
 
 async function api(payload){
   var jsonStr=JSON.stringify(payload);
@@ -506,6 +506,7 @@ function buildRadarSVG(scores){
 function openReport(sheetRow){
   var r=allRecords.find(x=>Number(x._sheetRow)===Number(sheetRow));
   if(!r){alert('找不到紀錄，請重新整理後再試');return}
+  currentReportRecord = r;
   document.getElementById('report-date-sub').textContent=r.testDate||'';
 
   // ── Weighted score banner ──
@@ -790,7 +791,8 @@ function downloadPDF(){
       tmp.getContext('2d').drawImage(canvas,0,srcY,canvas.width,srcH,0,0,canvas.width,srcH);
       pdf.addImage(tmp.toDataURL('image/jpeg',0.92),'JPEG',10,10,w,srcH*(w/canvas.width));
     }
-    pdf.save(document.querySelector('#modal-report-body strong')?.textContent+'_邏輯能力報告.pdf'||'邏輯能力報告.pdf');
+    var candidateName = (typeof currentReportRecord !== 'undefined' && currentReportRecord?.name) || '測驗者';
+    pdf.save(candidateName + '_邏輯能力測試.pdf');
   });
 }
 </script>
